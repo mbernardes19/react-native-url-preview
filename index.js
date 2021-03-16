@@ -21,10 +21,21 @@ export default class RNUrlPreview extends React.PureComponent {
     this.getPreview(this.props.source, this.props.requestOptions);
   }
 
-  _renderUrlForDisplay(url) {
-    const getDomainFromUrlRegex = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img;
-    const pageDomain = url.matchAll(getDomainFromUrlRegex).next().value[1];
-    return pageDomain.replace(pageDomain.charAt(0), pageDomain.charAt(0).toUpperCase());
+  _renderUrlForDisplay(url, siteName) {
+    const isSpaced = siteName => !!siteName.split(' ')[1];
+    const hasTwoUppercasedWords = siteName => siteName.split(' ')[1].charAt(0).toUpperCase() === siteName.split(' ')[1].charAt(0);
+
+    let domainName = '';
+    if (isSpaced(siteName) && hasTwoUppercasedWords(siteName)) {
+      domainName = siteName.replace(/\s/g, '');
+    } else {
+      domainName = siteName.split(' ')[0];
+    }
+
+    const domain = url.replace('http://', '').replace('https://', '').replace('www.', '').split(/[/?#]/)[0];
+    const domainTerminator = domain.split('.')[1];
+
+    return `${domainName}.${domainTerminator}`;
   }
 
   _handleLinkData = (data, onLoad) => {
@@ -34,7 +45,7 @@ export default class RNUrlPreview extends React.PureComponent {
     this.setState({
       isUri: true,
       linkTitle: data.title ? data.title : undefined,
-      linkDesc: data.url ? this._renderUrlForDisplay(data.url) : undefined,
+      linkDesc: data.url ? this._renderUrlForDisplay(data.url, data.siteName) : undefined,
       linkImg:
         data.images && data.images.length > 0
           ? data.images.find(function(element) {
