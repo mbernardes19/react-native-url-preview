@@ -22,7 +22,8 @@ export default class RNUrlPreview extends React.PureComponent {
   }
 
   _renderUrlForDisplay(url) {
-    const pageDomain = url.matchAll(reg).next().value[1];
+    const getDomainFromUrlRegex = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img;
+    const pageDomain = url.matchAll(getDomainFromUrlRegex).next().value[1];
     return pageDomain.replace(pageDomain.charAt(0), pageDomain.charAt(0).toUpperCase());
   }
 
