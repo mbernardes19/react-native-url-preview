@@ -21,6 +21,11 @@ export default class RNUrlPreview extends React.PureComponent {
     this.getPreview(this.props.source, this.props.requestOptions);
   }
 
+  _renderUrlForDisplay(url) {
+    const pageDomain = url.matchAll(reg).next().value[1];
+    return pageDomain.replace(pageDomain.charAt(0), pageDomain.charAt(0).toUpperCase());
+  }
+
   _handleLinkData = (data, onLoad) => {
     if (onLoad) {
       onLoad(data);
@@ -28,7 +33,7 @@ export default class RNUrlPreview extends React.PureComponent {
     this.setState({
       isUri: true,
       linkTitle: data.title ? data.title : undefined,
-      linkDesc: data.description ? data.description : undefined,
+      linkDesc: data.url ? this._renderUrlForDisplay(data.url) : undefined,
       linkImg:
         data.images && data.images.length > 0
           ? data.images.find(function(element) {
