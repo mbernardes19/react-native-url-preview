@@ -2,8 +2,11 @@ import React from 'react';
 import { getLinkPreview } from 'link-preview-js';
 import PropTypes from 'prop-types';
 import { Image, Linking, Platform, Text, TouchableOpacity, View, ViewPropTypes } from 'react-native';
+import blankImage from './blank.jpg';
 
 const REGEX = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/g;
+
+const DefaultImage = (imageStyle, imageProps) => <Image style={imageStyle} source={blankImage} {...imageProps} />;
 
 export default class RNUrlPreview extends React.PureComponent {
   constructor(props) {
@@ -14,6 +17,7 @@ export default class RNUrlPreview extends React.PureComponent {
       linkDesc: undefined,
       linkFavicon: undefined,
       linkImg: undefined,
+      imageRenderingFailed: false,
     };
   }
 
@@ -22,6 +26,12 @@ export default class RNUrlPreview extends React.PureComponent {
   }
 
   _renderUrlForDisplay(url, siteName) {
+    if (!siteName) {
+      const domain = url.replace('http://', '').replace('https://', '').replace('www.', '').split(/[/?#]/)[0];
+      const domainName = domain.replace(domain.charAt(0), domain.charAt(0).toUpperCase());
+      const domainTerminator = domain.split('.')[1];
+      return `${domainName}.${domainTerminator}`;
+    }
     const isSpaced = siteName => !!siteName.split(' ')[1];
     const hasTwoUppercasedWords = siteName => siteName.split(' ')[1].charAt(0).toUpperCase() === siteName.split(' ')[1].charAt(0);
 
@@ -38,21 +48,34 @@ export default class RNUrlPreview extends React.PureComponent {
     return `${domainName}.${domainTerminator}`;
   }
 
+  _parseData = (rawData) => {
+    if (!rawData.siteName) {
+      const domain = rawData.url.replace('http://', '').replace('https://', '').replace('www.', '').split(/[/?#]/)[0];
+      const siteName = domain.replace(domain.charAt(0), domain.charAt(0).toUpperCase()).split('.')[0];
+      return {
+        ...rawData,
+        siteName,
+      };
+    }
+    return rawData;
+  }
+
   _handleLinkData = (data, onLoad) => {
+    const parsedData = this._parseData(data);
     if (onLoad) {
-      onLoad(data);
+      onLoad(parsedData);
     }
     this.setState({
       isUri: true,
-      linkTitle: data.title ? data.title : undefined,
-      linkDesc: data.url ? this._renderUrlForDisplay(data.url, data.siteName) : undefined,
+      linkTitle: parsedData.title ? parsedData.title : undefined,
+      linkDesc: parsedData.url ? this._renderUrlForDisplay(parsedData.url, parsedData.siteName) : undefined,
       linkImg:
-        data.images && data.images.length > 0
-          ? data.images.find(function(element) {
-            return element.includes('.png') || element.includes('.jpg') || element.includes('.jpeg');
-          }) || data.images[0]
-          : undefined,
-      linkFavicon: data.favicons && data.favicons.length > 0 ? data.favicons[data.favicons.length - 1] : undefined,
+      parsedData.images && parsedData.images.length > 0
+        ? parsedData.images.find(function(element) {
+          return element.includes('.png') || element.includes('.jpg') || element.includes('.jpeg');
+        }) || parsedData.images[0]
+        : undefined,
+      linkFavicon: parsedData.favicons && parsedData.favicons.length > 0 ? parsedData.favicons[parsedData.favicons.length - 1] : undefined,
     });
   }
 
@@ -62,7 +85,7 @@ export default class RNUrlPreview extends React.PureComponent {
       try {
         this._handleLinkData(source, onLoad);
       } catch (err) {
-        console.log(err)
+        console.log(err);
         onError(err);
         this.setState({ isUri: false });
       }
@@ -93,11 +116,15 @@ export default class RNUrlPreview extends React.PureComponent {
   };
 
   renderImage = (imageLink, faviconLink, imageStyle, faviconStyle, imageProps) => {
-    return imageLink ? (
-      <Image style={imageStyle} source={{ uri: imageLink }} {...imageProps} />
-    ) : faviconLink ? (
-      <Image style={faviconStyle} source={{ uri: faviconLink }} {...imageProps} />
-    ) : null;
+    if (imageLink && !this.state.imageRenderingFailed) {
+      return <Image style={imageStyle} source={{ uri: imageLink }} onError={() => this.setState({ imageRenderingFailed: true })} {...imageProps} />;
+    } else if (imageLink && this.state.imageRenderingFailed) {
+      return <DefaultImage imageStyle={imageStyle} imageProps={imageProps} />;
+    } else if (faviconLink && !this.state.imageRenderingFailed) {
+      return <Image style={faviconStyle} source={{ uri: faviconLink }} onError={() => this.setState({ imageRenderingFailed: true })} {...imageProps} />;
+    } else {
+      return <DefaultImage imageStyle={imageStyle} imageProps={imageProps} />;
+    };
   };
 
   renderText = (showTitle, showDescription, title, description, textContainerStyle, titleStyle, descriptionStyle, titleNumberOfLines, descriptionNumberOfLines) => {
