@@ -6,7 +6,7 @@ import blankImage from './blank.jpg';
 
 const REGEX = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/g;
 
-const DefaultImage = (imageStyle, imageProps) => <Image style={imageStyle} source={blankImage} {...imageProps} />;
+const DefaultImage = ({imageStyle, imageProps}) => <Image style={imageStyle} source={blankImage} {...imageProps} />;
 
 export default class RNUrlPreview extends React.PureComponent {
   constructor(props) {
