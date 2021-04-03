@@ -3,6 +3,7 @@ import { getLinkPreview } from 'link-preview-js';
 import PropTypes from 'prop-types';
 import { Image, Linking, Platform, Text, TouchableOpacity, View, ViewPropTypes } from 'react-native';
 import blankImage from './blank.jpg';
+import SvgUri from 'react-native-svg-uri';
 
 const REGEX = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/g;
 
@@ -61,6 +62,7 @@ export default class RNUrlPreview extends React.PureComponent {
   }
 
   _handleLinkData = (data, onLoad) => {
+    console.log('DATA', data)
     const parsedData = this._parseData(data);
     if (onLoad) {
       onLoad(parsedData);
@@ -116,6 +118,9 @@ export default class RNUrlPreview extends React.PureComponent {
   };
 
   renderImage = (imageLink, faviconLink, imageStyle, faviconStyle, imageProps) => {
+    if (imageLink && imageLink.includes('.svg')) {
+      return <SvgUri width="150" height="95" source={{ uri: imageLink }}/>;
+    }
     if (imageLink && !this.state.imageRenderingFailed) {
       return <Image style={imageStyle} source={{ uri: imageLink }} onError={() => this.setState({ imageRenderingFailed: true })} {...imageProps} />;
     } else if (imageLink && this.state.imageRenderingFailed) {

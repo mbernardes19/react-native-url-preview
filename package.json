@@ -23,7 +23,9 @@
     "react-native": "*"
   },
   "dependencies": {
-    "link-preview-js": "2.0.4"
+    "link-preview-js": "2.0.4",
+    "react-native-svg": "^12.1.0",
+    "react-native-svg-uri": "^1.2.3"
   },
   "devDependencies": {},
   "repository": {
