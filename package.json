@@ -25,7 +25,7 @@
   "dependencies": {
     "link-preview-js": "2.0.4",
     "react-native-svg": "^12.1.0",
-    "react-native-svg-uri": "^1.2.3"
+    "react-native-svg-uri": "https://github.com/mbernardes19/react-native-svg-uri.git"
   },
   "devDependencies": {},
   "repository": {
